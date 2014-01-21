@@ -1,0 +1,3 @@
+#!/bin/sh
+exec 2>&1
+exec sudo -u chefupdater -E RACK_ENV=<%= @options[:rack_env] %> /opt/chef/embedded/bin/ruby /home/chefupdater/chef-updater/updater.rb
