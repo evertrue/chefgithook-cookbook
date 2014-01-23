@@ -98,6 +98,7 @@ cookbook_file "#{node['chefgithook']['home']}/chef-updater/updater.rb" do
   owner node['chefgithook']['user']
   group node['chefgithook']['group']
   mode '0755'
+  notifies :restart, "runit_service[chef-updater]"
 end
 
 case node.chef_environment

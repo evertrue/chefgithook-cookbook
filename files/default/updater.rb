@@ -4,6 +4,20 @@ require 'rubygems'
 require 'mixlib/shellout'
 require 'awesome_print'
 
+%w{
+  CHEF_REPO_DIR
+  KNIFE_NODE_NAME
+  KNIFE_CLIENT_KEY
+  KNIFE_VALIDATION_CLIENT_NAME
+  KNIFE_VALIDATION_CLIENT_KEY
+}.each do |env_var|
+  if ENV[env_var].nil?
+    raise "#{env_var} required but not set"
+  else
+    puts "#{env_var}=#{ENV[env_var]}"
+  end
+end
+
 configure do
   set :port, '6969'
   set :bind, '0.0.0.0'
@@ -11,7 +25,6 @@ end
 
 post '/' do
   push = JSON.parse(params[:payload])
-  puts ap push
   ChefGithubHook.sync_to(push)
 end
 
