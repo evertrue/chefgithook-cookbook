@@ -2,7 +2,7 @@ require 'sinatra'
 require 'json'
 require 'rubygems'
 require 'mixlib/shellout'
-require 'awesome_print'
+# require 'awesome_print'
 
 %w{
   CHEF_REPO_DIR
@@ -12,14 +12,14 @@ require 'awesome_print'
   KNIFE_VALIDATION_CLIENT_KEY
 }.each do |env_var|
   if ENV[env_var].nil?
-    raise "#{env_var} required but not set"
+    fail "#{env_var} required but not set"
   else
     puts "#{env_var}=#{ENV[env_var]}"
   end
 end
 
 configure do
-  set :port, '6969'
+  set :port, '<%= node['chefgithook']['sinatra']['port'] %>'
   set :bind, '0.0.0.0'
 end
 
@@ -28,42 +28,44 @@ post '/' do
   ChefGithubHook.sync_to(push)
 end
 
+# ChefGithubHook
 class ChefGithubHook
-
   class << self
     def chef_repo_cmd(cmd)
       command = Mixlib::ShellOut.new(cmd)
       command.cwd = ENV['CHEF_REPO_DIR']
-      puts "* Running command:"
+      puts '* Running command:'
       puts "  #{cmd}"
       command.run_command
       command.error!
-      return [ command.stdout, command.stderr ]
+
+      [command.stdout, command.stderr]
     end
 
-    def parse_commits( commits )
+    def parse_commits(commits)
       modified_files = []
 
       commits.each do |commit|
         modified_files += commit['added'] + commit['modified']
         modified_files -= commit['removed']
       end
-      return modified_files.uniq
+
+      modified_files.uniq
     end
 
     def sync_to(push)
-      puts "* Pulling changes from origin master"
-      chef_repo_cmd("git pull origin master")
+      puts '* Pulling changes from origin master'
+      chef_repo_cmd('git pull origin master')
       puts "* Checking out #{push['after']}"
       chef_repo_cmd("git checkout #{push['after']}")
-      puts "* Updating Chef Server"
-      modified_files = parse_commits( push['commits'] )
+      puts '* Updating Chef Server'
+      modified_files = parse_commits(push['commits'])
       puts "* Modified files: #{modified_files.join(', ')}"
       modified_files.each do |modified_file|
-        chef_repo_cmd("/opt/chef/bin/knife upload -c " +
+        chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
           "#{ENV['CHEF_REPO_DIR']}/.chef/knife.rb \"#{modified_file}\"")
       end
-      puts "* Victory is yours."
+      puts '* Victory is yours.'
     end
   end
 end

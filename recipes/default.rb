@@ -93,7 +93,7 @@ end
   end
 end
 
-cookbook_file "#{node['chefgithook']['home']}/chef-updater/updater.rb" do
+template "#{node['chefgithook']['home']}/chef-updater/updater.rb" do
   source 'updater.rb'
   owner node['chefgithook']['user']
   group node['chefgithook']['group']
