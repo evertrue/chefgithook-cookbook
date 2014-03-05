@@ -35,7 +35,7 @@ necessary attributes and you should be good to go.
 
 ChefGitHook expects your chef credentials to be in an S3 bucket (specified in a required attribute below).  By default they should be stored in `/keys/chefgithook`.
 
-### Files
+## Files
 
 The following files are required:
 
@@ -43,7 +43,7 @@ The following files are required:
 - `client.pem` - The client key for the Chef admin user account
 - `YOUR_VALIDATOR_FILE.pem` - The validator key, where YOUR_VALIDATOR_FILE should be replaced by your **validation_client_name** (configurable in a required attribute below).
 
-### IAM Permission Setup
+## IAM Permission Setup
 
 It is strongly recommended that you configure some security around the key
 bucket so as to prevent it from being accessible to anyone other than the
@@ -74,7 +74,7 @@ provide restricted access to the proper S3 bucket:
 
 **Be sure to replace YOUR_BUCKET_NAME with your actual bucket name**
 
-### AWS Credentials Data Bag format:
+## AWS Credentials Data Bag format:
 
     {
       "id": "aws_credentials",
