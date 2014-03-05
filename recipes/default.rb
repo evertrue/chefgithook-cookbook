@@ -14,7 +14,7 @@ chef_gem 'awesome_print'
 #     node['chefgithook']['s3']['key_source']['data_bag'],
 #     node['chefgithook']['s3']['key_source']['data_bag_item']
 #   )
-aws_keys = Chef::EncryptedDataBagItem.load('secrets','aws_credentials')
+aws_keys = Chef::EncryptedDataBagItem.load('secrets', 'aws_credentials')
 s3_keys = aws_keys[node['chefgithook']['s3']['key_source']['data_bag_item_key']]
 
 user node['chefgithook']['user'] do
@@ -22,7 +22,7 @@ user node['chefgithook']['user'] do
   shell '/bin/bash'
   comment 'Chef Updater'
   home node['chefgithook']['home']
-  supports :manage_home => true
+  supports manage_home: true
 end
 
 %w{
@@ -98,11 +98,11 @@ template "#{node['chefgithook']['home']}/chef-updater/updater.rb" do
   owner node['chefgithook']['user']
   group node['chefgithook']['group']
   mode '0755'
-  notifies :restart, "runit_service[chef-updater]"
+  notifies :restart, 'runit_service[chef-updater]'
 end
 
 case node.chef_environment
-when 'prod','production'
+when 'prod', 'production'
   rack_env = 'production'
 else
   rack_env = 'test'
@@ -111,14 +111,14 @@ end
 include_recipe 'runit'
 
 runit_service 'chef-updater' do
-  env ({
+  env(
     'KNIFE_NODE_NAME' => 'gitupdater',
     'KNIFE_CLIENT_KEY' => "#{node['chefgithook']['home']}/.chef/client.pem",
     'KNIFE_VALIDATION_CLIENT_NAME' => node['chefgithook']['knife']['validation_client_name'],
     'KNIFE_VALIDATION_CLIENT_KEY' => "#{node['chefgithook']['home']}/.chef/evertrue-validator.pem",
     'ET_EMAIL' => 'user@domain.com',
     'CHEF_REPO_DIR' => "#{node['chefgithook']['home']}/chef-updater/server-chef"
-  })
-  options ({ :rack_env => rack_env })
+  )
+  options(rack_env: rack_env)
   default_logger true
 end

@@ -1,4 +1,5 @@
 #!/bin/sh
+
 exec 2>&1 \
   chpst -e $PWD/env sudo -u chefupdater -E \
   RACK_ENV=<%= @options[:rack_env] %> /opt/chef/embedded/bin/ruby \
