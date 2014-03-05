@@ -50,39 +50,43 @@ bucket so as to prevent it from being accessible to anyone other than the
 ChefGitHook user.  The following IAM security policy should be sufficient to
 provide restricted access to the proper S3 bucket:
 
+```json
+{
+  "Statement": [
     {
-      "Statement": [
-        {
-          "Sid": "StmtListBuckets",
-          "Action": [
-            "s3:ListAllMyBuckets",
-            "s3:ListBucket"
-          ],
-          "Effect": "Allow",
-          "Resource": [ "arn:aws:s3:::*" ]
-        },
-        {
-          "Sid": "StmtFileAccess",
-          "Action": "s3:GetObject*",
-          "Effect": "Allow",
-          "Resource": [
-            "arn:aws:s3:::YOUR_BUCKET_NAME/keys/chefgithook/*"
-          ]
-        }
+      "Sid": "StmtListBuckets",
+      "Action": [
+        "s3:ListAllMyBuckets",
+        "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [ "arn:aws:s3:::*" ]
+    },
+    {
+      "Sid": "StmtFileAccess",
+      "Action": "s3:GetObject*",
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:s3:::YOUR_BUCKET_NAME/keys/chefgithook/*"
       ]
     }
+  ]
+}
+```
 
 **Be sure to replace YOUR_BUCKET_NAME with your actual bucket name**
 
 ## AWS Credentials Data Bag format:
 
-    {
-      "id": "aws_credentials",
-      "chefgithook": {
-        "access_key_id": "YOUR_ACCESS_KEY_ID",
-        "secret_access_key": "YOUR_SECRET_KEY"
-      }
-    }
+```json
+{
+  "id": "aws_credentials",
+  "chefgithook": {
+    "access_key_id": "YOUR_ACCESS_KEY_ID",
+    "secret_access_key": "YOUR_SECRET_KEY"
+  }
+}
+```
 
 # Attributes
 
