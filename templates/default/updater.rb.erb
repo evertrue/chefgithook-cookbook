@@ -54,6 +54,10 @@ class ChefGithubHook
     end
 
     def sync_to(push)
+      unless push['ref'] == 'refs/heads/master'
+        puts "Ignoring update to #{push['ref']}"
+        return
+      end
       puts '* Pulling changes from origin master'
       chef_repo_cmd('git pull origin master')
       puts "* Checking out #{push['after']}"
