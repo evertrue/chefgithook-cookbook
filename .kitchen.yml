@@ -15,3 +15,6 @@ suites:
     run_list:
       - recipe[chefgithook::default]
     attributes:
+      chefgithook:
+        s3:
+          bucket: 'ops.evertrue.com'
