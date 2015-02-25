@@ -96,7 +96,7 @@ end
 end
 
 template "#{node['chefgithook']['home']}/chef-updater/updater.rb" do
-  source 'updater.rb'
+  source 'updater.rb.erb'
   owner node['chefgithook']['user']
   group node['chefgithook']['group']
   mode '0755'
