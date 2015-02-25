@@ -66,10 +66,14 @@ class ChefGithubHook
       modified_files = parse_commits(push['commits'])
       puts "* Modified files: #{modified_files.join(', ')}"
       modified_files.each do |modified_file|
-        chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
-          "#{ENV['CHEF_REPO_DIR']}/.chef/knife.rb \"#{modified_file}\"")
+        begin
+          chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
+            "#{ENV['CHEF_REPO_DIR']}/.chef/knife.rb \"#{modified_file}\"")
+        rescue Mixlib::ShellOut::ShellCommandFailed
+          puts "* Uploading of \"#{modified_file}\" failed"
+        end
       end
-      puts '* Victory is yours.'
+      puts '* Sync complete.'
     end
   end
 end
