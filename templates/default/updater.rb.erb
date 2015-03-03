@@ -71,6 +71,8 @@ class ChefGithubHook
             "#{ENV['CHEF_REPO_DIR']}/.chef/knife.rb \"#{modified_file}\"")
         rescue Mixlib::ShellOut::ShellCommandFailed
           puts "* Uploading of \"#{modified_file}\" failed"
+        rescue => e
+          puts "* Got unhandled error #{e.class}/#{e.message}"
         end
       end
       puts '* Sync complete.'
