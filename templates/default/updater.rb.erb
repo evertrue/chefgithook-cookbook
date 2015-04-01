@@ -2,6 +2,7 @@ require 'sinatra'
 require 'json'
 require 'rubygems'
 require 'mixlib/shellout'
+require 'slack-notifier'
 # require 'awesome_print'
 
 %w{
@@ -53,6 +54,12 @@ class ChefGithubHook
       modified_files.uniq
     end
 
+    def slack
+      @slack ||= begin
+        Slack::Notifier.new '<%= @slack_webhook_url %>'
+      end
+    end
+
     def sync_to(push)
       unless push['ref'] == 'refs/heads/master'
         puts "Ignoring update to #{push['ref']}"
@@ -75,6 +82,8 @@ class ChefGithubHook
           puts "* Got unhandled error #{e.class}/#{e.message}"
         end
       end
+      puts '* Sending Slack notification'
+      slack.ping "Pushed hash #{push['ref']} to Chef"
       puts '* Sync complete.'
     end
   end

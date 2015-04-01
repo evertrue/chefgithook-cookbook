@@ -8,6 +8,7 @@
 #
 
 chef_gem 'sinatra'
+chef_gem 'slack-notifier'
 chef_gem 'awesome_print'
 
 aws_keys = data_bag_item('secrets', 'aws_credentials')
@@ -101,7 +102,10 @@ template "#{node['chefgithook']['home']}/chef-updater/updater.rb" do
   source 'updater.rb.erb'
   owner node['chefgithook']['user']
   group node['chefgithook']['group']
-  mode '0755'
+  mode '0700'
+  variables(
+    slack_webhook_url: data_bag_item('secrets', 'api_keys')['slack_webhook_url']
+  )
   notifies :restart, 'runit_service[chef-updater]'
 end
 
