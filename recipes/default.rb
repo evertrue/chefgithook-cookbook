@@ -54,35 +54,9 @@ template "#{node['chefgithook']['home']}/chef-updater/git_ssh.sh" do
   mode '0755'
 end
 
-s3_file "#{node['chefgithook']['home']}/.ssh/id_rsa" do
-  remote_path "#{node['chefgithook']['s3']['path']}/chefupdater_id_rsa"
-  bucket node['chefgithook']['s3']['bucket']
-  if node['chefgithook']['s3']['bucket'] =~ /\./
-    s3_url "https://s3.amazonaws.com/#{node['chefgithook']['s3']['bucket']}"
-  end
-  aws_access_key_id s3_keys['access_key_id']
-  aws_secret_access_key s3_keys['secret_access_key']
-  owner node['chefgithook']['user']
-  group node['chefgithook']['group']
-  mode '0600'
-end
-
-package 'git'
-
-git "#{node['chefgithook']['home']}/chef-updater/server-chef" do
-  repository node['chefgithook']['chef_repo']
-  reference node['chefgithook']['chef_repo_tag']
-  user node['chefgithook']['user']
-  group node['chefgithook']['group']
-  action :checkout
-end
-
-[
-  'client.pem',
-  "#{node['chefgithook']['knife']['validation_client_name']}.pem"
-].each do |file|
-  s3_file "#{node['chefgithook']['home']}/.chef/#{file}" do
-    remote_path "#{node['chefgithook']['s3']['path']}/#{file}"
+unless node['chefgithook']['mocking']
+  s3_file "#{node['chefgithook']['home']}/.ssh/id_rsa" do
+    remote_path "#{node['chefgithook']['s3']['path']}/chefupdater_id_rsa"
     bucket node['chefgithook']['s3']['bucket']
     if node['chefgithook']['s3']['bucket'] =~ /\./
       s3_url "https://s3.amazonaws.com/#{node['chefgithook']['s3']['bucket']}"
@@ -92,6 +66,34 @@ end
     owner node['chefgithook']['user']
     group node['chefgithook']['group']
     mode '0600'
+  end
+
+  package 'git'
+
+  git "#{node['chefgithook']['home']}/chef-updater/server-chef" do
+    repository node['chefgithook']['chef_repo']
+    reference node['chefgithook']['chef_repo_tag']
+    user node['chefgithook']['user']
+    group node['chefgithook']['group']
+    action :checkout
+  end
+
+  [
+    'client.pem',
+    "#{node['chefgithook']['knife']['validation_client_name']}.pem"
+  ].each do |file|
+    s3_file "#{node['chefgithook']['home']}/.chef/#{file}" do
+      remote_path "#{node['chefgithook']['s3']['path']}/#{file}"
+      bucket node['chefgithook']['s3']['bucket']
+      if node['chefgithook']['s3']['bucket'] =~ /\./
+        s3_url "https://s3.amazonaws.com/#{node['chefgithook']['s3']['bucket']}"
+      end
+      aws_access_key_id s3_keys['access_key_id']
+      aws_secret_access_key s3_keys['secret_access_key']
+      owner node['chefgithook']['user']
+      group node['chefgithook']['group']
+      mode '0600'
+    end
   end
 end
 
