@@ -98,13 +98,17 @@ unless node['chefgithook']['mocking']
   end
 end
 
+slack_webhook_url = data_bag_item('secrets', 'api_keys')['slack_webhook_url']
+fail 'Slack webhook URL not found' if slack_webhook_url.nil? ||
+                                      slack_webhook_url.empty?
+
 template "#{node['chefgithook']['home']}/chef-updater/updater.rb" do
   source 'updater.rb.erb'
   owner node['chefgithook']['user']
   group node['chefgithook']['group']
   mode '0700'
   variables(
-    slack_webhook_url: data_bag_item('secrets', 'api_keys')['slack_webhook_url']
+    slack_webhook_url: slack_webhook_url
   )
   notifies :restart, 'runit_service[chef-updater]'
 end
