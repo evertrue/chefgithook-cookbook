@@ -7,7 +7,7 @@ to your Chef server.
 # Requirements
 
 - A [GitHub](http://github.com) account
-- A [Chef](http://www.getchef.com) account
+- A [Chef](http://www.chef.io) account
 
 We have only tested this with Hosted Chef, but there is no reason it should not
 also work with Enterprise Chef and Open Source Chef.
