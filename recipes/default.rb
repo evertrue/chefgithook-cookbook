@@ -137,7 +137,8 @@ runit_service 'chef-updater' do
     'KNIFE_NODE_NAME' => 'gitupdater',
     'KNIFE_CLIENT_KEY' => "#{node['chefgithook']['home']}/.chef/client.pem",
     'KNIFE_VALIDATION_CLIENT_NAME' => node['chefgithook']['knife']['validation_client_name'],
-    'KNIFE_VALIDATION_CLIENT_KEY' => "#{node['chefgithook']['home']}/.chef/evertrue-validator.pem",
+    'KNIFE_VALIDATION_CLIENT_KEY' => "#{node['chefgithook']['home']}/.chef/" \
+      "#{node['chefgithook']['knife']['validation_client_name']}.pem",
     'ET_EMAIL' => 'user@domain.com',
     'CHEF_REPO_DIR' => "#{node['chefgithook']['home']}/chef-updater/server-chef"
   )
