@@ -72,7 +72,7 @@ unless node['chefgithook']['mocking']
   package 'git'
 
   git "#{node['chefgithook']['home']}/chef-updater/server-chef" do
-    repository node['chefgithook']['chef_repo']
+    repository "git@github.com:#{node['chefgithook']['chef_repo']}.git"
     reference node['chefgithook']['chef_repo_tag']
     user node['chefgithook']['user']
     group node['chefgithook']['group']

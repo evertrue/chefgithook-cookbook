@@ -83,7 +83,9 @@ class ChefGithubHook
         end
       end
       puts '* Sending Slack notification'
-      slack.ping "Pushed hash #{push['ref']} to Chef"
+      slack.ping "Pushed hash " \
+        "<https://github.com/<%= node['chefgithook']['chef_repo'] %>/commit/#{push['after']}|" \
+        "#{push['after'][1..7]}> to Chef"
       puts '* Sync complete.'
     end
   end
