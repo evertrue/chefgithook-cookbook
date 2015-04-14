@@ -62,14 +62,7 @@ class ChefGithubHook
 
     def notify(msg, options = {})
       args = { icon_url: 'http://ops.evertrue.com.s3.amazonaws.com/public/chef_logo.png' }
-      color = case options[:status]
-              when :good
-                '#0f0'
-              when :bad
-                '#f00'
-              else
-                '#ccc'
-              end
+      color = options[:status] || 'none'
       if options[:files]
         msg += "\n\nFiles uploaded:\n"
         msg += options[:files].map { |f| "- #{f}" }.join("\n")
@@ -96,15 +89,16 @@ class ChefGithubHook
           chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
             "#{ENV['CHEF_REPO_DIR']}/.chef/knife.rb \"#{modified_file}\"")
         rescue Mixlib::ShellOut::ShellCommandFailed
-          notify "Uploading of \"#{modified_file}\" failed", status: :bad
+          notify "Uploading of \"#{modified_file}\" failed", status: 'danger'
         rescue => e
-          notify "Got unhandled error #{e.class}/#{e.message}", status: :bad
+          notify "Got unhandled error #{e.class}/#{e.message}",
+                 status: 'danger'
         end
       end
       notify "Pushed hash " \
         "<https://github.com/<%= node['chefgithook']['chef_repo'] %>/commit/#{push['after']}|" \
         "#{push['after'][1..7]}> to Chef.",
-        status: :good,
+        status: 'good',
         files: modified_files
       puts '* Sync complete.'
     end
