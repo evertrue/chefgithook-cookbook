@@ -27,7 +27,9 @@ end
 post '/' do
   push = JSON.parse(params[:payload])
   
-  halt 403 unless ENV['CHEFGITHOOK_SECRET'] == push[:secret]
+  request.body.rewind
+  body = request.body.read
+  ChefGithubHook.verify?(body) unless ENV['CHEFGITHOOK_SECRET'].empty?
   
   ChefGithubHook.sync_to(push)
 end
@@ -44,6 +46,11 @@ class ChefGithubHook
       command.error!
 
       [command.stdout, command.stderr]
+    end
+
+    def verify?(payload_body) 
+      signature = 'sha1=' + OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new('sha1'), ENV['CHEFGITHOOK_SECRET'], payload_body)
+      return halt 401, "Signatures didn't match!" unless Rack::Utils.secure_compare(signature, request.env['HTTP_X_HUB_SIGNATURE'])
     end
 
     def parse_commits(commits)
