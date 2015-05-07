@@ -141,7 +141,9 @@ runit_service 'chef-updater' do
     'KNIFE_VALIDATION_CLIENT_KEY' => "#{node['chefgithook']['home']}/.chef/" \
       "#{node['chefgithook']['knife']['validation_client_name']}.pem",
     'ET_EMAIL' => 'user@domain.com',
-    'CHEF_REPO_DIR' => "#{node['chefgithook']['home']}/chef-updater/server-chef"
+    'CHEF_REPO_DIR' => "#{node['chefgithook']['home']}" \
+      '/chef-updater/server-chef',
+    'CHEFGITHOOK_SECRET' => node['chefgithook']['secret']
   )
   options(rack_env: rack_env)
   default_logger true

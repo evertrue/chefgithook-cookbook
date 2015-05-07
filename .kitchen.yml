@@ -16,6 +16,7 @@ suites:
       - recipe[chefgithook::default]
     attributes:
       chefgithook:
+        secret: supersecret
         mocking: true
         s3:
           bucket: 'ops.evertrue.com'
