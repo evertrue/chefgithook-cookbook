@@ -97,11 +97,13 @@ class ChefGithubHook
       modified_files.each do |modified_file|
         begin
           chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
-            "#{ENV['CHEF_REPO_DIR']}/.chef/knife.rb \"#{modified_file}\"")
-        rescue Mixlib::ShellOut::ShellCommandFailed
-          notify "Uploading of \"#{modified_file}\" failed", status: 'danger'
+            "#{ENV['CHEF_REPO_DIR']}/chef-config/knife.rb \"#{modified_file}\"")
+        rescue Mixlib::ShellOut::ShellCommandFailed => e
+          notify "Uploading of \"#{modified_file}\" failed" \
+                 " (#{e.message})", status: 'danger'
         rescue => e
-          notify "Got unhandled error #{e.class}/#{e.message}",
+          notify "Got unhandled error handling #{modified_file}" \
+                 "#{e.class}/#{e.message}",
                  status: 'danger'
         end
       end
@@ -111,6 +113,8 @@ class ChefGithubHook
         status: 'good',
         files: modified_files
       puts '* Sync complete.'
+    rescue => e
+      notify "Unhandled exception: #{e.class}/#{e.message}", status: 'danger'
     end
   end
 end
