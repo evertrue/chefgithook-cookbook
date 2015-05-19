@@ -32,10 +32,10 @@ user node['chefgithook']['user'] do
   supports manage_home: true
 end
 
-%w{
+%w(
   chef-updater
   .chef
-}.each do |dir|
+).each do |dir|
   directory "#{node['chefgithook']['home']}/#{dir}" do
     owner node['chefgithook']['user']
     group node['chefgithook']['group']
