@@ -1,3 +1,7 @@
 # Lining up the attributes of some methods is advantageous for readability
 SingleSpaceBeforeFirstArg:
   Enabled: false
+
+# The default 79 character limit is sometimes unproductive.
+LineLength:
+  Max: 120
