@@ -5,6 +5,8 @@ require 'mixlib/shellout'
 require 'slack-notifier'
 # require 'awesome_print'
 
+CHEF_DIRS = %w{data_bags environments roles}
+
 %w{
   CHEF_REPO_DIR
   KNIFE_NODE_NAME
@@ -94,10 +96,17 @@ class ChefGithubHook
       puts '* Updating Chef Server'
       modified_files = parse_commits(push['commits'])
       puts "* Modified files: #{modified_files.join(', ')}"
+      ignored_files = []
+      uploaded_files = []
       modified_files.each do |modified_file|
         begin
-          chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
-            "#{ENV['CHEF_REPO_DIR']}/chef-config/knife.rb \"#{modified_file}\"")
+          if CHEF_DIRS.include?(modified_file.split('/').first)
+            chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
+              "#{ENV['CHEF_REPO_DIR']}/chef-config/knife.rb \"#{modified_file}\"")
+            uploaded_files << modified_file
+          else
+            ignored_files << modified_file
+          end
         rescue Mixlib::ShellOut::ShellCommandFailed => e
           notify "Uploading of \"#{modified_file}\" failed" \
                  " (#{e.message})", status: 'danger'
@@ -111,7 +120,8 @@ class ChefGithubHook
         "<https://github.com/<%= node['chefgithook']['chef_repo'] %>/commit/#{push['after']}|" \
         "#{push['after'][1..7]}> to Chef.",
         status: 'good',
-        files: modified_files
+        files: uploaded_files
+      notify 'Ignored files', status: 'none', files: ignored_files if ignored_files.any?
       puts '* Sync complete.'
     rescue => e
       notify "Unhandled exception: #{e.class}/#{e.message}", status: 'danger'
