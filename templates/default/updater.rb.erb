@@ -26,6 +26,10 @@ configure do
   set :bind, '0.0.0.0'
 end
 
+options '/status' do
+  status 204 && return
+end
+
 post '/' do
   push = JSON.parse(params[:payload])
 
