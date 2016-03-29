@@ -136,6 +136,7 @@ runit_service 'chef-updater' do
   env(
     'KNIFE_NODE_NAME' => 'gitupdater',
     'KNIFE_CLIENT_KEY' => "#{node['chefgithook']['home']}/.chef/client.pem",
+    'KNIFE_CHEF_SERVER' => node['chefgithook']['knife']['chef_server'],
     'KNIFE_VALIDATION_CLIENT_NAME' =>
       node['chefgithook']['knife']['validation_client_name'],
     'KNIFE_VALIDATION_CLIENT_KEY' => "#{node['chefgithook']['home']}/.chef/" \
