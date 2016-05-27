@@ -98,7 +98,6 @@ class ChefGithubHook
       chef_repo_cmd('git pull origin master')
       puts "* Checking out #{push['after']}"
       chef_repo_cmd("git checkout #{push['after']}")
-      puts '* Updating Chef Server'
       modified_files = parse_commits(push['commits'])
       puts "* Modified files: #{modified_files.join(', ')}"
       ignored_files = []
@@ -121,7 +120,7 @@ class ChefGithubHook
                  status: 'danger'
         end
       end
-      notify "Pushed hash " \
+      notify "Uploaded hash " \
         "<https://github.com/<%= node['chefgithook']['chef_repo'] %>/commit/#{push['after']}|" \
         "#{push['after'][1..7]}> to Chef.",
         status: 'good',
