@@ -20,6 +20,7 @@
 chef_gem 'sinatra'
 chef_gem 'slack-notifier'
 chef_gem 'awesome_print'
+chef_gem 'vault'
 
 aws_keys = data_bag_item('secrets', 'aws_credentials')
 s3_keys = aws_keys[node['chefgithook']['s3']['key_source']['data_bag_item_key']]
@@ -108,7 +109,9 @@ unless node['chefgithook']['mocking']
   end
 end
 
-slack_webhook_url = data_bag_item('secrets', 'api_keys')['slack_webhook_url']
+api_keys = data_bag_item('secrets', 'api_keys')
+
+slack_webhook_url = api_keys['slack_webhook_url']
 fail 'Slack webhook URL not found' if slack_webhook_url.nil? ||
                                       slack_webhook_url.empty?
 
@@ -143,7 +146,8 @@ runit_service 'chef-updater' do
       "#{node['chefgithook']['knife']['validation_client_name']}.pem",
     'ET_EMAIL' => 'user@domain.com',
     'CHEF_REPO_DIR' => "#{node['chefgithook']['home']}/chef-updater/server-chef",
-    'CHEFGITHOOK_SECRET' => node['chefgithook']['secret']
+    'CHEFGITHOOK_SECRET' => node['chefgithook']['secret'],
+    'VAULT_WORKER_TOKEN' => api_keys[node.chef_environment]['vault']['worker_token']
   )
   options(rack_env: rack_env)
   default_logger true
