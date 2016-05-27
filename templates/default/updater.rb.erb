@@ -3,6 +3,7 @@ require 'json'
 require 'rubygems'
 require 'mixlib/shellout'
 require 'slack-notifier'
+require 'vault'
 # require 'awesome_print'
 
 CHEF_DIRS = %w{data_bags environments roles}
@@ -14,6 +15,7 @@ CHEF_DIRS = %w{data_bags environments roles}
   KNIFE_CLIENT_KEY
   KNIFE_VALIDATION_CLIENT_NAME
   KNIFE_VALIDATION_CLIENT_KEY
+  VAULT_WORKER_TOKEN
 }.each do |env_var|
   if ENV[env_var].nil?
     fail "#{env_var} required but not set"
@@ -89,6 +91,33 @@ class ChefGithubHook
       slack.ping '', args
     end
 
+    def modified_file_type(modified_file)
+      parent_dir = modified_file.split('/').first
+      if CHEF_DIRS.include? parent_dir
+        :chef
+      elsif parent_dir == 'vault' && modified_file.split('/')[2] == 'policies'
+        :vault_policy
+      end
+    end
+
+    def chef_upload(modified_file)
+      chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
+        "#{ENV['CHEF_REPO_DIR']}/chef-config/knife.rb \"#{modified_file}\"")
+    end
+
+    def vault_policy_upload(modified_file)
+      vault_env = modified_file.split('/')[1]
+      policy_file = modified_file.split('/').last
+      policy_name = policy_file.gsub(/\.json|\.hcl/, '')
+      rules = File.read modified_file.chomp
+
+      vault = Vault::Client.new(
+        address: "http://vault.service.#{vault_env}-us-east-1.consul:8200",
+        token: ENV['VAULT_WORKER_TOKEN']
+      )
+      vault.sys.put_policy policy_name, rules
+    end
+
     def sync_to(push)
       unless push['ref'] == 'refs/heads/master'
         notify "Ignoring update to #{push['ref']}"
@@ -105,9 +134,12 @@ class ChefGithubHook
       uploaded_files = []
       modified_files.each do |modified_file|
         begin
-          if CHEF_DIRS.include?(modified_file.split('/').first)
-            chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
-              "#{ENV['CHEF_REPO_DIR']}/chef-config/knife.rb \"#{modified_file}\"")
+          case modified_file_type modified_file
+          when :chef
+            chef_upload modified_file
+            uploaded_files << modified_file
+          when :vault_policy
+            vault_policy_upload modified_file
             uploaded_files << modified_file
           else
             ignored_files << modified_file
@@ -123,7 +155,7 @@ class ChefGithubHook
       end
       notify "Pushed hash " \
         "<https://github.com/<%= node['chefgithook']['chef_repo'] %>/commit/#{push['after']}|" \
-        "#{push['after'][1..7]}> to Chef.",
+        "#{push['after'][1..7]}>",
         status: 'good',
         files: uploaded_files
       notify 'Ignored files', status: 'none', files: ignored_files if ignored_files.any?
