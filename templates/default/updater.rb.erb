@@ -109,7 +109,7 @@ class ChefGithubHook
       vault_env = modified_file.split('/')[1]
       policy_file = modified_file.split('/').last
       policy_name = policy_file.gsub(/\.json|\.hcl/, '')
-      rules = File.read modified_file.chomp
+      rules = File.read "#{ENV['CHEF_REPO_DIR']}/#{modified_file.chomp}"
 
       vault = Vault::Client.new(
         address: "http://vault.service.#{vault_env}-us-east-1.consul:8200",
