@@ -21,6 +21,7 @@ chef_gem 'sinatra'
 chef_gem 'slack-notifier'
 chef_gem 'awesome_print'
 chef_gem 'vault'
+chef_gem 'awsutils'
 
 aws_keys = data_bag_item('secrets', 'aws_credentials')
 s3_keys = aws_keys[node['chefgithook']['s3']['key_source']['data_bag_item_key']]
