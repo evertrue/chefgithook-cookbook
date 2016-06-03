@@ -148,7 +148,8 @@ runit_service 'chef-updater' do
     'ET_EMAIL' => 'user@domain.com',
     'CHEF_REPO_DIR' => "#{node['chefgithook']['home']}/chef-updater/server-chef",
     'CHEFGITHOOK_SECRET' => node['chefgithook']['secret'],
-    'VAULT_WORKER_TOKEN' => api_keys[node.chef_environment]['vault']['worker_token']
+    'VAULT_PROD_WORKER_TOKEN' => api_keys['prod']['vault']['worker_token'],
+    'VAULT_STAGE_WORKER_TOKEN' => api_keys['stage']['vault']['worker_token']
   )
   options(rack_env: rack_env)
   default_logger true
