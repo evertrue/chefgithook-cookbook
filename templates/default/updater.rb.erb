@@ -114,6 +114,7 @@ class ChefGithubHook
       vault = Vault::Client.new(
         address: "http://vault.service.#{vault_env}-us-east-1.consul:8200",
         token: ENV['VAULT_WORKER_TOKEN']
+        timeout: 5
       )
       vault.sys.put_policy policy_name, rules
     end
