@@ -152,11 +152,13 @@ class ChefGithubHook
                  status: 'danger'
         end
       end
-      notify "Uploaded hash " \
-        "<https://github.com/<%= node['chefgithook']['chef_repo'] %>/commit/#{push['after']}|" \
-        "#{push['after'][1..7]}>",
-        status: 'good',
-        files: uploaded_files
+      if uploaded_files.any?
+        notify "Uploaded hash " \
+          "<https://github.com/<%= node['chefgithook']['chef_repo'] %>/commit/#{push['after']}|" \
+          "#{push['after'][1..7]}>",
+          status: 'good',
+          files: uploaded_files
+      end
       notify 'Ignored files', status: 'none', files: ignored_files if ignored_files.any?
       puts '* Sync complete.'
     rescue => e
