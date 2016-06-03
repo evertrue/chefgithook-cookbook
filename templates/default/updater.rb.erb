@@ -15,7 +15,6 @@ CHEF_DIRS = %w{data_bags environments roles}
   KNIFE_CLIENT_KEY
   KNIFE_VALIDATION_CLIENT_NAME
   KNIFE_VALIDATION_CLIENT_KEY
-  VAULT_WORKER_TOKEN
 }.each do |env_var|
   if ENV[env_var].nil?
     fail "#{env_var} required but not set"
