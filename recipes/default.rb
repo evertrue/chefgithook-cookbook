@@ -111,6 +111,7 @@ unless node['chefgithook']['mocking']
 end
 
 api_keys = data_bag_item('secrets', 'api_keys')
+vault_tokens = data_bag_item('vault', 'tokens')
 
 slack_webhook_url = api_keys['slack_webhook_url']
 fail 'Slack webhook URL not found' if slack_webhook_url.nil? ||
@@ -148,8 +149,8 @@ runit_service 'chef-updater' do
     'ET_EMAIL' => 'user@domain.com',
     'CHEF_REPO_DIR' => "#{node['chefgithook']['home']}/chef-updater/server-chef",
     'CHEFGITHOOK_SECRET' => node['chefgithook']['secret'],
-    'VAULT_PROD_WORKER_TOKEN' => api_keys['prod']['vault']['worker_token'],
-    'VAULT_STAGE_WORKER_TOKEN' => api_keys['stage']['vault']['worker_token']
+    'VAULT_PROD_WORKER_TOKEN' => vault_tokens['prod']['vault']['worker_token'],
+    'VAULT_STAGE_WORKER_TOKEN' => vault_tokens['stage']['vault']['worker_token']
   )
   options(rack_env: rack_env)
   default_logger true
