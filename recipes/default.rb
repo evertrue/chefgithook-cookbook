@@ -148,7 +148,7 @@ runit_service 'chef-updater' do
       "#{node['chefgithook']['knife']['validation_client_name']}.pem",
     'ET_EMAIL' => 'user@domain.com',
     'CHEF_REPO_DIR' => "#{node['chefgithook']['home']}/chef-updater/server-chef",
-    'CHEFGITHOOK_SECRET' => node['chefgithook']['secret'],
+    'CHEFGITHOOK_SECRET' => data_bag_item('secrets', 'api_keys')['chefhook']['webhook']['secret'],
     'VAULT_PROD_WORKER_TOKEN' => vault_tokens['prod']['vault']['worker_token'],
     'VAULT_STAGE_WORKER_TOKEN' => vault_tokens['stage']['vault']['worker_token']
   )
