@@ -50,6 +50,57 @@ end
 # ChefGithubHook
 class ChefGithubHook
   class << self
+    def sync_to(push)
+      unless push['ref'] == 'refs/heads/master'
+        notify "Ignoring update to #{push['ref']}"
+        return
+      end
+
+      puts '* Pulling changes from origin master'
+      chef_repo_cmd('git pull origin master')
+      puts "* Checking out #{push['after']}"
+      chef_repo_cmd("git checkout #{push['after']}")
+      modified_files = parse_commits(push['commits'])
+      puts "* Modified files: #{modified_files.join(', ')}"
+      ignored_files = []
+      uploaded_files = []
+
+      modified_files.each do |modified_file|
+        begin
+          case modified_file_type modified_file
+          when :chef
+            chef_upload modified_file
+            uploaded_files << modified_file
+          when :vault_policy
+            vault_policy_upload modified_file
+            uploaded_files << modified_file
+          else
+            ignored_files << modified_file
+          end
+        rescue Mixlib::ShellOut::ShellCommandFailed => e
+          notify "Uploading of \"#{modified_file}\" failed" \
+                 " (#{e.message})", status: 'danger'
+        rescue => e
+          notify "Got unhandled error handling #{modified_file}" \
+                 "#{e.class}/#{e.message}",
+                 status: 'danger'
+        end
+      end
+      if uploaded_files.any?
+        notify "Uploaded hash " \
+          "<#{push['repository']['html_url']}/commit/#{push['after']}|" \
+          "#{push['after'][1..7]}>",
+          status: 'good',
+          files: uploaded_files
+      end
+      notify 'Ignored files', status: 'none', files: ignored_files if ignored_files.any?
+      puts '* Sync complete.'
+    rescue => e
+      notify "Unhandled exception: #{e.class}/#{e.message}", status: 'danger'
+    end
+
+    private
+
     def chef_repo_cmd(cmd)
       command = Mixlib::ShellOut.new(cmd)
       command.cwd = ENV['CHEF_REPO_DIR']
@@ -116,53 +167,6 @@ class ChefGithubHook
         timeout: 5
       )
       vault.sys.put_policy policy_name, rules
-    end
-
-    def sync_to(push)
-      unless push['ref'] == 'refs/heads/master'
-        notify "Ignoring update to #{push['ref']}"
-        return
-      end
-      puts '* Pulling changes from origin master'
-      chef_repo_cmd('git pull origin master')
-      puts "* Checking out #{push['after']}"
-      chef_repo_cmd("git checkout #{push['after']}")
-      modified_files = parse_commits(push['commits'])
-      puts "* Modified files: #{modified_files.join(', ')}"
-      ignored_files = []
-      uploaded_files = []
-      modified_files.each do |modified_file|
-        begin
-          case modified_file_type modified_file
-          when :chef
-            chef_upload modified_file
-            uploaded_files << modified_file
-          when :vault_policy
-            vault_policy_upload modified_file
-            uploaded_files << modified_file
-          else
-            ignored_files << modified_file
-          end
-        rescue Mixlib::ShellOut::ShellCommandFailed => e
-          notify "Uploading of \"#{modified_file}\" failed" \
-                 " (#{e.message})", status: 'danger'
-        rescue => e
-          notify "Got unhandled error handling #{modified_file}" \
-                 "#{e.class}/#{e.message}",
-                 status: 'danger'
-        end
-      end
-      if uploaded_files.any?
-        notify "Uploaded hash " \
-          "<https://github.com/<%= node['chefgithook']['chef_repo'] %>/commit/#{push['after']}|" \
-          "#{push['after'][1..7]}>",
-          status: 'good',
-          files: uploaded_files
-      end
-      notify 'Ignored files', status: 'none', files: ignored_files if ignored_files.any?
-      puts '* Sync complete.'
-    rescue => e
-      notify "Unhandled exception: #{e.class}/#{e.message}", status: 'danger'
     end
   end
 end
