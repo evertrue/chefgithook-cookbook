@@ -4,12 +4,12 @@ require 'rubygems'
 require 'mixlib/shellout'
 require 'slack-notifier'
 require 'vault'
+require 'yaml'
 # require 'awesome_print'
 
 CHEF_DIRS = %w{data_bags environments roles}
 
 %w{
-  CHEF_REPO_DIR
   KNIFE_CHEF_SERVER
   KNIFE_NODE_NAME
   KNIFE_CLIENT_KEY
@@ -22,6 +22,8 @@ CHEF_DIRS = %w{data_bags environments roles}
     puts "#{env_var}=#{ENV[env_var]}"
   end
 end
+
+@conf = YAML.load_file '<%= node['chefgithook']['home'] %>/chef-updater/updater.yaml'
 
 configure do
   set :port, '<%= node['chefgithook']['sinatra']['port'] %>'
@@ -50,7 +52,11 @@ end
 # ChefGithubHook
 class ChefGithubHook
   class << self
+    attr_reader :repo
+
     def sync_to(push)
+      @repo = push['repository']['name']
+
       unless push['ref'] == 'refs/heads/master'
         notify "Ignoring update to #{push['ref']}"
         return
@@ -101,9 +107,13 @@ class ChefGithubHook
 
     private
 
+    def chef_repo_dir
+      @conf[:chef_repo_dirs][@repo]
+    end
+
     def chef_repo_cmd(cmd)
       command = Mixlib::ShellOut.new(cmd)
-      command.cwd = ENV['CHEF_REPO_DIR']
+      command.cwd = chef_repo_dir
       puts '* Running command:'
       puts "  #{cmd}"
       command.run_command
@@ -152,14 +162,14 @@ class ChefGithubHook
 
     def chef_upload(modified_file)
       chef_repo_cmd('/opt/chef/bin/knife upload -c ' +
-        "#{ENV['CHEF_REPO_DIR']}/chef-config/knife.rb \"#{modified_file}\"")
+        "#{chef_repo_dir}/chef-config/knife.rb \"#{modified_file}\"")
     end
 
     def vault_policy_upload(modified_file)
       vault_env = modified_file.split('/')[1]
       policy_file = modified_file.split('/').last
       policy_name = policy_file.gsub(/\.json|\.hcl/, '')
-      rules = File.read "#{ENV['CHEF_REPO_DIR']}/#{modified_file.chomp}"
+      rules = File.read "#{chef_repo_dir}/#{modified_file.chomp}"
 
       vault = Vault::Client.new(
         address: "http://vault.service.#{vault_env}-us-east-1.consul:8200",
