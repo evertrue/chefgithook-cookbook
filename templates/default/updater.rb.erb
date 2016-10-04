@@ -127,6 +127,7 @@ class ChefGithubHook
 
     def chef_repo_cmd(cmd)
       command = Mixlib::ShellOut.new(cmd)
+      command.environment = { 'CHEF_REPO_DIR' => chef_repo_dir }
       command.cwd = chef_repo_dir
       puts '* Running command:'
       puts "  #{cmd}"
