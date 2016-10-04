@@ -83,12 +83,14 @@ unless node['chefgithook']['mocking']
 
   package 'git'
 
-  git "#{node['chefgithook']['home']}/chef-updater/server-chef" do
-    repository "git@github.com:#{node['chefgithook']['chef_repo']}.git"
-    reference node['chefgithook']['chef_repo_tag']
-    user node['chefgithook']['user']
-    group node['chefgithook']['group']
-    action :checkout
+  node['chefgithook']['chef_repo_dirs'].each do |repo, repo_dir|
+    git repo_dir do
+      repository "git@github.com:#{repo}.git"
+      reference node['chefgithook']['chef_repo_tag']
+      user node['chefgithook']['user']
+      group node['chefgithook']['group']
+      action :checkout
+    end
   end
 
   [
@@ -116,6 +118,12 @@ vault_tokens = data_bag_item('vault', 'tokens')
 slack_webhook_url = api_keys['slack_webhook_url']
 fail 'Slack webhook URL not found' if slack_webhook_url.nil? ||
                                       slack_webhook_url.empty?
+
+file "#{node['chefgithook']['home']}/chef-updater/updater.yaml" do
+  content(JSON.parse({ chef_repo_dirs: node['chefgithook']['chef_repo_dirs'] }.to_json).to_yaml)
+  owner node['chefgithook']['user']
+  group node['chefgithook']['group']
+end
 
 template "#{node['chefgithook']['home']}/chef-updater/updater.rb" do
   source 'updater.rb.erb'

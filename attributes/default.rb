@@ -10,7 +10,7 @@ default['chefgithook']['s3']['key_source']['data_bag_item_key'] = 'chefgithook'
 
 default['chefgithook']['user'] = 'chefupdater'
 default['chefgithook']['group'] = 'chefupdater'
-default['chefgithook']['chef_repo'] = nil
+default['chefgithook']['chef_repo_dirs'] = {}
 default['chefgithook']['chef_repo_tag'] = 'master'
 
 default['chefgithook']['sinatra']['port'] = '6969'
