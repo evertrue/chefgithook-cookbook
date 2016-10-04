@@ -55,7 +55,7 @@ class ChefGithubHook
     attr_reader :repo
 
     def sync_to(push)
-      @repo = push['repository']['name']
+      @repo = push['repository']
 
       unless push['ref'] == 'refs/heads/master'
         notify "Ignoring update to #{push['ref']}"
@@ -108,7 +108,7 @@ class ChefGithubHook
     private
 
     def chef_repo_dir
-      @conf[:chef_repo_dirs][@repo]
+      @conf[:chef_repo_dirs][@repo['full_name']]
     end
 
     def chef_repo_cmd(cmd)
