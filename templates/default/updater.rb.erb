@@ -77,20 +77,23 @@ class ChefGithubHook
         begin
           case modified_file_type modified_file
           when :chef
+            puts '* File is type: chef'
             chef_upload modified_file
             uploaded_files << modified_file
           when :vault_policy
+            puts '* File is type: vault_policy'
             vault_policy_upload modified_file
             uploaded_files << modified_file
           else
+            puts '* File type is not recognized and will be ignored'
             ignored_files << modified_file
           end
         rescue Mixlib::ShellOut::ShellCommandFailed => e
           notify "Uploading of \"#{modified_file}\" failed" \
                  " (#{e.message})", status: 'danger'
         rescue => e
-          notify "Got unhandled error handling #{modified_file}" \
-                 "#{e.class}/#{e.message}",
+          notify "Error handling file #{modified_file}: " \
+                 "#{e.class} (#{e.message})\n#{e.backtrace.join("\n")}",
                  status: 'danger'
         end
       end
@@ -98,14 +101,22 @@ class ChefGithubHook
       if uploaded_files.any?
         notify "Uploaded hash " \
           "<#{push['repository']['html_url']}/commit/#{push['after']}|" \
-          "#{push['after'][1..7]}>",
+          "#{push['after'][1..7]}>\n\nFiles uploaded:\n",
           status: 'good',
           files: uploaded_files
       end
-      notify 'Ignored files', status: 'none', files: ignored_files if ignored_files.any?
+
+      if ignored_files.any?
+        puts "Ignored files: #{ignored_files.inspect}"
+        notify 'Ignored files', status: 'none', files: ignored_files
+      end
+
       puts '* Sync complete.'
     rescue => e
-      notify "Unhandled exception: #{e.class}/#{e.message}", status: 'danger'
+      notify(
+        "Unhandled exception: #{e.class}/#{e.message}\n#{e.backtrace.join("\n")}",
+        status: 'danger'
+      )
     end
 
     private
@@ -145,10 +156,9 @@ class ChefGithubHook
     def notify(msg, options = {})
       args = { icon_url: 'http://ops.evertrue.com.s3.amazonaws.com/public/chef_logo.png' }
       color = options[:status] || 'none'
-      if options[:files]
-        msg += "\n\nFiles uploaded:\n"
-        msg += options[:files].map { |f| "- #{f}" }.join("\n")
-      end
+
+      msg += options[:files].map { |f| "- #{f}" }.join("\n") if options[:files]
+
       args[:attachments] = [{ text: msg, fallback: msg, color: color }]
       puts "* Sending to Slack: #{msg}"
       slack.ping '', args
