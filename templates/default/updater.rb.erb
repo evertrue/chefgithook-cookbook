@@ -92,6 +92,7 @@ class ChefGithubHook
                  status: 'danger'
         end
       end
+      
       if uploaded_files.any?
         notify "Uploaded hash " \
           "<#{push['repository']['html_url']}/commit/#{push['after']}|" \
