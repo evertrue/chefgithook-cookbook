@@ -149,9 +149,7 @@ class ChefGithubHook
     end
 
     def slack
-      @slack ||= begin
-        Slack::Notifier.new '<%= @slack_webhook_url %>'
-      end
+      @slack ||= Slack::Notifier.new '<%= @slack_webhook_url %>'
     end
 
     def notify(msg, options = {})
