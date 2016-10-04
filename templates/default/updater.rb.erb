@@ -23,8 +23,6 @@ CHEF_DIRS = %w{data_bags environments roles}.freeze
   end
 end
 
-@conf = YAML.load_file '<%= node['chefgithook']['home'] %>/chef-updater/updater.yaml'
-
 configure do
   set :port, '<%= node['chefgithook']['sinatra']['port'] %>'
   set :bind, '0.0.0.0'
@@ -53,6 +51,10 @@ end
 class ChefGithubHook
   class << self
     attr_reader :repo
+
+    def conf
+      @conf ||= YAML.load_file '<%= node['chefgithook']['home'] %>/chef-updater/updater.yaml'
+    end
 
     def sync_to(push)
       @repo = push['repository']
@@ -109,7 +111,7 @@ class ChefGithubHook
     private
 
     def chef_repo_dir
-      @conf[:chef_repo_dirs][@repo['full_name']]
+      conf['chef_repo_dirs'][@repo['full_name']]
     end
 
     def chef_repo_cmd(cmd)
