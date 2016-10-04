@@ -6,7 +6,7 @@ require 'slack-notifier'
 require 'vault'
 # require 'awesome_print'
 
-CHEF_DIRS = %w{data_bags environments roles}
+CHEF_DIRS = %w{data_bags environments roles}.freeze
 
 %w{
   CHEF_REPO_DIR
