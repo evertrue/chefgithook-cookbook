@@ -31,7 +31,7 @@ user node['chefgithook']['user'] do
   shell '/bin/bash'
   comment 'Chef Updater'
   home node['chefgithook']['home']
-  supports manage_home: true
+  manage_home true
 end
 
 %w(
